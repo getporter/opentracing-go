@@ -59,6 +59,7 @@ func StartSpanFromContext(ctx context.Context, operationName string, opts ...Sta
 func StartSpanFromContextWithTracer(ctx context.Context, tracer Tracer, operationName string, opts ...StartSpanOption) (Span, context.Context) {
 	if parentSpan := SpanFromContext(ctx); parentSpan != nil {
 		opts = append(opts, ChildOf(parentSpan.Context()))
+		tracer = parentSpan.Tracer()
 	}
 	span := tracer.StartSpan(operationName, opts...)
 	return span, ContextWithSpan(ctx, span)

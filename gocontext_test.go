@@ -119,3 +119,26 @@ func TestStartSpanFromContextOptions(t *testing.T) {
 	assert.Equal(t, childSpan.(testSpan).Tags["component"], nil)
 	assert.Equal(t, childSpan.(testSpan).StartTime, childStartTime)
 }
+
+func TestStartSpanFromContextWithTracer(t *testing.T) {
+	testTracer := testTracer{}
+
+	// Test the case where there *is* a Span in the Context.
+	{
+		parentSpan := &testSpan{}
+		parentCtx := ContextWithSpan(context.Background(), parentSpan)
+		childSpan, _ := StartSpanFromContextWithTracer(parentCtx, GlobalTracer(), "child")
+		if childSpan.Tracer() != testTracer {
+			t.Error("Should have used the tracer that started the parent span")
+		}
+	}
+
+	// Test the case where there *is not* a Span in the Context.
+	{
+		emptyCtx := context.Background()
+		childSpan, _ := StartSpanFromContextWithTracer(emptyCtx, GlobalTracer(), "child")
+		if childSpan.Tracer() != GlobalTracer() {
+			t.Error("Should have used the provided tracer when there is no parent span")
+		}
+	}
+}
